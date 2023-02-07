@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "hardhat/console.sol";
 
 
 //  _______    ______  __      __   ______
@@ -28,16 +27,13 @@ contract PayoTransfer is Ownable {
 
     constructor(address _feeCollector) {
         feeCollector = payable(_feeCollector);
-        // uint256 feeRate = 1000000;
     }
 
     function transferETH(address payable _to) public payable {
         require(_to != address(0));
         require(msg.value > 0);
         uint256 fee = (msg.value).div(100).mul(2);
-        console.log(fee);
         uint256 value = msg.value.sub(fee);
-        console.log(value);
         _to.transfer(value);
         feeCollector.transfer(fee);
     }
