@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -20,7 +20,6 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 contract PayoTransfer is Ownable {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
-    //feePercentage = 100 = 1%
     uint256 public feePercentage;
     address payable public feeCollector;
     address private _owner;
@@ -43,7 +42,7 @@ contract PayoTransfer is Ownable {
     }
 
     function transferToken(IERC20 _token, address _to, uint256 _value) external {
-        require(validTokens[address(_token)] == true, "Unsupported token");
+        require(validTokens[address(_token)], "Unsupported token");
         require(_to != address(0));
         require(_value >= 10000, "Value too small to calculate fee");
         uint256 fee = _value.div(10000).mul(feePercentage);
