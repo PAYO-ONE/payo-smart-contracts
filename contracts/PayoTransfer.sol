@@ -20,46 +20,53 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 contract PayoTransfer is Ownable {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
+    //feePercentage = 100 = 1%
     uint256 public feePercentage;
     address payable public feeCollector;
-    IERC20[] public validTokens;
     address private _owner;
 
-    constructor(address _feeCollector) {
-        feeCollector = payable(_feeCollector);
+    mapping(address => bool) public validTokens;
+
+    
+    constructor(address payable  _feeCollector, uint _fee) {
+        feeCollector = _feeCollector;
+        feePercentage = _fee;
     }
 
-    function transferETH(address payable _to) public payable {
+    function transferETH(address payable _to) external payable {
         require(_to != address(0));
-        require(msg.value > 0);
-        uint256 fee = (msg.value).div(100).mul(2);
+        require(msg.value >= 10000, "Value too small to calculate fee");
+        uint256 fee = (msg.value).div(10000).mul(feePercentage);
         uint256 value = msg.value.sub(fee);
         _to.transfer(value);
         feeCollector.transfer(fee);
     }
 
-    function transferToken(IERC20 _token, address _to, uint256 _value) public {
-        require(isValidToken(_token) == true, "Unsupported token");
+    function transferToken(IERC20 _token, address _to, uint256 _value) external {
+        require(validTokens[address(_token)] == true, "Unsupported token");
         require(_to != address(0));
-        require(_value > 0);
-        require(_value >= 100, "Value too small to calculate fee");
-        uint256 fee = _value.div(100).mul(2);
-        require(_value >= fee, "Fee greater than value");
+        require(_value >= 10000, "Value too small to calculate fee");
+        uint256 fee = _value.div(10000).mul(feePercentage);
         uint256 value = _value.sub(fee);
         _token.safeTransferFrom(msg.sender, _to, value);
         _token.safeTransferFrom(msg.sender, feeCollector, fee);
     }
 
-    function isValidToken(IERC20 _token) internal view returns (bool) {
-        for (uint256 i = 0; i < validTokens.length; i++) {
-            if (validTokens[i] == _token) {
-                return true;
-            }
-        }
-        return false;
+    function addValidToken(IERC20 _token) external onlyOwner {
+        require(!validTokens[address(_token)], 'this token already add');
+        validTokens[address(_token)] = true;
     }
 
-    function addValidToken(IERC20 _token) public onlyOwner {
-        validTokens.push(_token);
+    function deleteValidToken(IERC20 _token) external  onlyOwner {
+        delete validTokens[address(_token)];
+    }
+    
+    function changeFeeCollector(address payable  _feeCollector) external onlyOwner {
+        feeCollector = _feeCollector;
+    }
+
+    function changeFeePercent(uint256 _fee) external onlyOwner {
+        require(_fee < 10000, 'fee is to high');
+        feePercentage = _fee;
     }
 }

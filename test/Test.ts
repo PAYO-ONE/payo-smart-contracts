@@ -25,7 +25,8 @@ describe("PayoTransfer", function () {
     PAYO = (await PayoTransferFactory.deploy(
       (
         await ethers.getSigners()
-      )[1].address
+      )[1].address,
+      100,
     ));
     await PAYO.addValidToken(tokenA.address);
     await tokenA.approve(PAYO.address, await tokenA.balanceOf((await ethers.getSigners())[0].address))
@@ -37,16 +38,16 @@ describe("PayoTransfer", function () {
     await PAYO.transferToken(tokenA.address, (await ethers.getSigners())[2].address, amount);
     let balance = await tokenA.balanceOf((await ethers.getSigners())[2].address);
     let fee = await tokenA.balanceOf((await ethers.getSigners())[1].address);
-    expect(balance).to.be.equal(ethers.utils.parseEther((100 - 100 / 100 * 2).toString()));
-    expect(fee).to.be.equal(ethers.utils.parseEther((100 - 100 / 100 * 98).toString()));
+    expect(balance).to.be.equal(ethers.utils.parseEther((100 - 100 / 100).toString()));
+    expect(fee).to.be.equal(ethers.utils.parseEther((100 - 100 / 100 * 99).toString()));
   });
   it("TransferETH", async function () {
     let amount = { value: ethers.utils.parseEther("100") };
     await PAYO.transferETH((await ethers.getSigners())[2].address, amount);
     let balanceAfter = await ethers.provider.getBalance((await ethers.getSigners())[2].address);
     let fee = await ethers.provider.getBalance((await ethers.getSigners())[1].address);
-    expect(balanceAfter).to.be.equal("10098000000000000000000");
-    expect(fee).to.be.equal("10002000000000000000000");
+    expect(balanceAfter).to.be.equal("10099000000000000000000");
+    expect(fee).to.be.equal("10001000000000000000000");
   })
   it("TransferWrongToken", async function () {
     let amount = await tokenB.balanceOf((await ethers.getSigners())[0].address);
